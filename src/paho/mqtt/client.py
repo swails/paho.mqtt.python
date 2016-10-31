@@ -2146,12 +2146,12 @@ class Client(object):
 
         with self._out_packet_mutex:
             self._out_packet.append(mpkt)
-            try:
-                if self._current_out_packet_mutex.acquire(False):
+            if self._current_out_packet_mutex.acquire(False):
+                try:
                     if self._current_out_packet is None and len(self._out_packet) > 0:
                         self._current_out_packet = self._out_packet.pop(0)
-            finally:
-                self._current_out_packet_mutex.release()
+                finally:
+                    self._current_out_packet_mutex.release()
 
         # Write a single byte to sockpairW (connected to sockpairR) to break
         # out of select() if in threaded mode.
@@ -2444,7 +2444,7 @@ class Client(object):
     def _do_on_publish(self, idx, mid):
         with self._callback_mutex:
             if self.on_publish:
-                with self._out_message_mutex.:
+                with self._out_message_mutex:
                     self._in_callback = True
                     self.on_publish(self, self._userdata, mid)
                     self._in_callback = False
